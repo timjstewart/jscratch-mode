@@ -9,22 +9,33 @@
 (defcustom jsnip-maven-home "/usr/local"
   "Maven Home Directory")
 
+(defcustom jsnip-maven-repo
+  (substitute-in-file-name "$HOME/.m2/repository")
+  "Maven Repository")
+
+(cl-defstruct jsnip-jar-file
+  group-id
+  artifact-id
+  version
+  local-path)
+
 ;; Interactive Commands
 
 (defun jsnip-run-snippet ()
   "runs the Java snippet in the current buffer"
   (interactive)
   (let* ((temp-dir     (make-temp-file "java-snippet-" t))
-         (lines        (split-string (substring-no-properties (buffer-string)) "\n\r?"))
+         (lines        (jsnip-read-snippet-lines))
          (handler      (jsnip-make-line-handler temp-dir))
          (operations   (mapcar handler lines))
+         (jar-files    (jsnip-filter operations 'jar-file))
          (buffer       (jsnip-init-output-buffer "*Java Snippet*")))
-    (if (jsnip-download-missing-jars operations buffer)
-        (let* ((class-path   (jsnip-build-class-path temp-dir (jsnip-find-jar-files operations) buffer))
-               (compile      (jsnip-compile-source-files temp-dir
-                                                         class-path
-                                                         (jsnip-filter operations 'source-file)
-                                                         buffer)))
+    (if (jsnip-download-missing-jars jar-files buffer)
+        (let* ((class-path (jsnip-build-class-path temp-dir jar-files buffer))
+               (compile    (jsnip-compile-source-files temp-dir
+                                                       class-path
+                                                       (jsnip-filter operations 'source-file)
+                                                       buffer)))
           (if (jsnip-compile-succeeded compile)
               (jsnip-run-main temp-dir
                               class-path
@@ -59,6 +70,9 @@
 
 ;; Snippet Parsing
 
+(defun jsnip-read-snippet-lines ()
+  (split-string (substring-no-properties (buffer-string)) "\n\r?"))
+
 (defun jsnip-make-line-handler (temp-dir)
   "creates a handler that creates an operation for each line in
 the buffer"
@@ -75,8 +89,8 @@ the buffer"
               ((jsnip-argument-p line)
                `(argument . ,(jsnip-get-argument line)))
               
-              ((jsnip-jar-file-p line)
-               `(dependency . ,(jsnip-get-jar-file line)))
+              ((jsnip-jar-file-line-p line)
+               `(jar-file . ,(jsnip-get-jar-file line)))
               
               ((not (null current-file))
                (jsnip-write-line current-file line)
@@ -118,35 +132,45 @@ the buffer"
 
 ;; Jar Files
 
-(defun jsnip-jar-file-p (line)
+(defun jsnip-jar-file-line-p (line)
   (s-starts-with-p "/// jar: " line))
 
 (defun jsnip-get-jar-file (line)
-  "returns the dependency (e.g. '<group-id>:<artifact-id>:<version>') specified on LINE"
-  (and (string-match "/// jar: \\(.*\\)$" line)
-       (match-string 1 line)))
+  "returns the jar-file (e.g. '<group-id>:<artifact-id>:<version>') specified on LINE"
+  (if (and (string-match "/// jar: \\(.*\\)$" line)
+           (match-string 1 line))
+      (let* ((tokens (s-split ":" (match-string 1 line)))
+             (group-id (nth 0 tokens))
+             (artifact-id (nth 1 tokens))
+             (version (nth 2 tokens)))
+        (make-jsnip-jar-file :group-id group-id
+                             :artifact-id artifact-id
+                             :version version
+                             :local-path (jsnip-get-jar-file-local-path group-id artifact-id version)))))
 
 (defun jsnip-find-jar-files (ops)
   "returns a list of jar files that the snippet needs to compile
 and run"
   (mapcar 'jsnip-find-jar-file (jsnip-collect-jar-files ops)))
 
-(defun jsnip-find-jar-file (dependency)
-  "returns the path to the jar file that the dependency
-references"
-  (let ((tokens (s-split ":" dependency))
-        (path  "/Users/stewtj3/.m2/repository/"))
-    (setf (nth 0 tokens) (s-replace "." "/" (nth 0 tokens)))
-    (mapcar #'(lambda (x)
-                (setq path (concat (file-name-as-directory path) x)))
-            tokens)
-    (concat (file-name-as-directory path) (concat (nth 1 tokens) "-" (nth 2 tokens) ".jar"))))
+(defun jsnip-get-jar-file-local-path (group-id artifact-id version)
+  "returns the local path to the jar file uniquely identified by
+the GROUP-ID, ARTIFACT-ID, and the VERSION"
+  (let* ((group-path (concat (file-name-as-directory jsnip-maven-repo)
+                             (s-replace "." "/" group-id)))
+         (artifact-path (concat (file-name-as-directory group-path)
+                                 artifact-id))
+          (version-path (concat (file-name-as-directory artifact-path)
+                                 version))
+          (jar-file-path (concat (file-name-as-directory version-path)
+                                 artifact-id "-"  version ".jar")))
+         jar-file-path))
 
 (defun jsnip-collect-jar-files (ops)
   "returns a list of jar files that the snippet depends on"
   (mapcar 'cdr
        (remove-if-not #'(lambda (op)
-                          (eq 'dependency (car op))) ops)))
+                          (eq 'jar-file (car op))) ops)))
 
 ;; Source File
              
@@ -179,30 +203,28 @@ output and snippet output will be displayed"
   "builds the Java class path required to compile the snippet and
 run the program"
   (mapcar #'(lambda (jar-file)
-              (when (not (file-exists-p jar-file))
-                (insert (concat "warning: could not find jar file: " jar-file ".\n"))))
-          jar-files)
-  (s-join ":" (-flatten (list temp-dir jar-files))))
+              (let ((jar-file-path (jsnip-jar-file-local-path jar-file)))
+                    (when (not (file-exists-p jar-file-path))
+                      (insert (concat "warning: could not find jar file: " jar-file-path ".\n")))))
+                jar-files)
+  (s-join ":" (-flatten (list temp-dir (mapcar #'jsnip-jar-file-local-path jar-files)))))
 
 ;; Download Missing Jars
 
-(defun jsnip-download-missing-jars (ops buffer)
-  (mapcar #'(lambda (dependency)
-              (let ((jar-file (jsnip-find-jar-file dependency)))
-                (when (not (file-exists-p jar-file))
-                  (insert (concat "warning: could not find jar file: " jar-file ".  Downloading...\n"))
-                  (let* ((maven-path (concat (file-name-as-directory jsnip-maven-home) "bin/mvn"))
-                         (tokens (s-split ":" dependency))
-                         (group-id (nth 0 tokens))
-                         (artifact-id (nth 1 tokens))
-                         (version (nth 2 tokens)))
+(defun jsnip-download-missing-jars (jar-files buffer)
+  (mapcar #'(lambda (jar-file)
+              (let ((jar-file-path (jsnip-jar-file-local-path jar-file)))
+                (message jar-file-path)
+                (when (not (file-exists-p jar-file-path))
+                  (insert (concat "warning: could not find jar file: " jar-file-path ".  Downloading...\n"))
+                  (let ((maven-path (concat (file-name-as-directory jsnip-maven-home) "bin/mvn")))
                     (call-process maven-path nil buffer nil 
                                   "org.apache.maven.plugins:maven-dependency-plugin:2.7:get"
-                                  (concat "-DgroupId=" group-id)
-                                  (concat "-DartifactId=" artifact-id)
-                                  (concat "-Dversion=" version)
+                                  (concat "-DgroupId=" (jsnip-jar-file-group-id jar-file))
+                                  (concat "-DartifactId=" (jsnip-jar-file-artifact-id jar-file))
+                                  (concat "-Dversion=" (jsnip-jar-file-version jar-file))
                                   "-Dtype=pom")))))
-          (jsnip-filter ops 'dependency))
+          jar-files)
   t)
 
 ;; Utilities
