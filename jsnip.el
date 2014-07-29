@@ -75,7 +75,7 @@
               (let ((default-directory temp-dir))
                 (call-process
                  (concat (file-name-as-directory jsnip-java-home) "javac")
-                 nil t nil file "-Xlint:unchecked" "-cp" class-path)))
+                 nil t nil file "-Xlint:all" "-cp" class-path)))
           files))
 
 ;; Snippet Parsing
@@ -224,8 +224,8 @@ run the program"
 (defun jsnip-download-missing-jars (jar-files buffer)
   (mapcar #'(lambda (jar-file)
               (let ((jar-file-path (jsnip-jar-file-local-path jar-file)))
-                (message jar-file-path)
                 (when (not (file-exists-p jar-file-path))
+                  (message (concat "Downloading JAR to: " jar-file-path "..."))
                   (insert (concat "warning: could not find jar file: " jar-file-path ".  Downloading...\n"))
                   (let ((maven-path (concat (file-name-as-directory jsnip-maven-home) "bin/mvn")))
                     (call-process maven-path nil buffer nil 
