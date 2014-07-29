@@ -75,7 +75,7 @@
               (let ((default-directory temp-dir))
                 (call-process
                  (concat (file-name-as-directory jsnip-java-home) "javac")
-                 nil t nil file "-cp" class-path)))
+                 nil t nil file "-Xlint:unchecked" "-cp" class-path)))
           files))
 
 ;; Snippet Parsing
