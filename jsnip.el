@@ -1,3 +1,5 @@
+;; JSnip Functions
+
 (require 'cl)
 (require 'dash)
 
@@ -13,7 +15,7 @@
   (substitute-in-file-name "$HOME/.m2/repository")
   "Maven Repository")
 
-(cl-defstruct jsnip-jar-file
+(defstruct jsnip-jar-file
   group-id
   artifact-id
   version
@@ -24,25 +26,26 @@
 (defun jsnip-run-snippet ()
   "runs the Java snippet in the current buffer"
   (interactive)
-  (let* ((temp-dir     (make-temp-file "java-snippet-" t))
-         (lines        (jsnip-read-snippet-lines))
-         (handler      (jsnip-make-line-handler temp-dir))
-         (operations   (mapcar handler lines))
-         (jar-files    (jsnip-filter operations 'jar-file))
-         (buffer       (jsnip-init-output-buffer "*Java Snippet*")))
-    (if (jsnip-download-missing-jars jar-files buffer)
-        (let* ((class-path (jsnip-build-class-path temp-dir jar-files buffer))
-               (compile    (jsnip-compile-source-files temp-dir
-                                                       class-path
-                                                       (jsnip-filter operations 'source-file)
-                                                       buffer)))
-          (if (jsnip-compile-succeeded compile)
-              (jsnip-run-main temp-dir
-                              class-path
-                              (jsnip-find-main-class operations)
-                              (jsnip-collect-arguments operations)
-                              buffer)))))
-  nil)
+  (save-current-buffer
+    (let* ((temp-dir     (make-temp-file "java-snippet-" t))
+           (lines        (jsnip-read-snippet-lines))
+           (handler      (jsnip-make-line-handler temp-dir))
+           (operations   (mapcar handler lines))
+           (jar-files    (jsnip-filter operations 'jar-file))
+           (buffer       (jsnip-init-output-buffer "*Java Snippet*")))
+      (if (jsnip-download-missing-jars jar-files buffer)
+          (let* ((class-path (jsnip-build-class-path temp-dir jar-files buffer))
+                 (compile    (jsnip-compile-source-files temp-dir
+                                                         class-path
+                                                         (jsnip-filter operations 'source-file)
+                                                         buffer)))
+            (if (jsnip-compile-succeeded compile)
+                (jsnip-run-main temp-dir
+                                class-path
+                                (jsnip-find-main-class operations)
+                                (jsnip-collect-arguments operations)
+                                buffer))))))
+      nil)
 
 ;; Execution
 

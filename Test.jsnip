@@ -1,27 +1,51 @@
+/// main: Gen
+
 /// file: Gen.java
 
-import java.io.IOException;
+interface Named {
+    String getName();
+}
 
 public class Gen {
 
-    private class StaticInner<T> {
+    private static class StaticInner<T> {
         final T t;
         public StaticInner(T t) { this.t = t; }
-        @Override public String toString() { return t.toString(); }
+        @Override public String toString() {
+            return t.toString();
+        }
     }
 
-    public static void main(String[] args) throws IOException {
-
+    public static void main(String[] args) {
         System.out.println("Hi");
 
         for (final String arg : args) {
             System.out.println(arg);
         }
 
-        final StaticInner<String> si = new Gen().new StaticInner<>("World");
+        final StaticInner<String> si = new StaticInner<>("World");
 
         System.out.println(si.toString());
+
+        new Dog().bark().bark().bark();
+
+        System.out.println(getName().getName());
+    }
+
+    private static Named getName() {
+        return new Named() {
+            @Override public String getName() {
+                return "No name!";
+            }
+        };
     }
 }
 
-/// main: Gen
+/// file: Dog.java
+
+class Dog {
+    public Dog bark() {
+        System.out.print("Woof! ");
+        return this;
+    }
+}
