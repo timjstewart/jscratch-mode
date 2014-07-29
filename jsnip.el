@@ -53,7 +53,6 @@
     (apply 'call-process
            java-path nil t nil "-cp" class-path main-class args)))
 
-
 ;; Compilation
 
 (defun jsnip-compile-succeeded (compile-results)

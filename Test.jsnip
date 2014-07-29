@@ -1,0 +1,27 @@
+/// file: Gen.java
+
+import java.io.IOException;
+
+public class Gen {
+
+    private class StaticInner<T> {
+        final T t;
+        public StaticInner(T t) { this.t = t; }
+        @Override public String toString() { return t.toString(); }
+    }
+
+    public static void main(String[] args) throws IOException {
+
+        System.out.println("Hi");
+
+        for (final String arg : args) {
+            System.out.println(arg);
+        }
+
+        final StaticInner<String> si = new Gen().new StaticInner<>("World");
+
+        System.out.println(si.toString());
+    }
+}
+
+/// main: Gen
