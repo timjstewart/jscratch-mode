@@ -48,3 +48,13 @@ Key Bindings
 
 - C-c r will run the current snippet
 - C-c e will export the current snippet to a directory that must exist
+
+Customization
+=============
+
+Run 'M-x customize-apropos RET jsnip' to get a list of things you can
+customize.
+
+- jsnip-java-home - the directory where Java is installed
+- jsnip-maven-home - the directory where Maven is installed
+- jsnip-maven-repo - the path to your Maven repository (in case it's not in ~/.m2/repository)

@@ -5,7 +5,7 @@
 
 ;; Custom Variables
 
-(defcustom jsnip-java-home "/usr/bin"
+(defcustom jsnip-java-home "/usr"
   "Java Home Directory")
 
 (defcustom jsnip-maven-home "/usr/local"
@@ -60,7 +60,7 @@
 (defun jsnip-run-main (temp-dir class-path main-class args buffer)
   "creates a new JVM and runs the main class"
   (let ((default-directory temp-dir)
-        (java-path (concat (file-name-as-directory jsnip-java-home) "java")))
+        (java-path (concat (file-name-as-directory jsnip-java-home) "bin/java")))
     (apply 'call-process
            java-path nil t nil "-cp" class-path main-class args)))
 
@@ -74,7 +74,7 @@
   (mapcar #'(lambda (file)
               (let ((default-directory temp-dir))
                 (call-process
-                 (concat (file-name-as-directory jsnip-java-home) "javac")
+                 (concat (file-name-as-directory jsnip-java-home) "bin/javac")
                  nil t nil file "-Xlint:all" "-cp" class-path)))
           files))
 
