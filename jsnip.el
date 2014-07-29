@@ -23,11 +23,19 @@
 
 ;; Interactive Commands
 
+(defun jsnip-export-snippet (directory)
+  "exports the snippet in the current buffer to an existing directory"
+  (interactive "Dexport to directory: ")
+  (let* ((lines   (jsnip-read-snippet-lines))
+         (handler (jsnip-make-line-handler directory)))
+    (mapcar handler lines)
+    (message (concat "Snippet was exported to: " directory))))
+
 (defun jsnip-run-snippet ()
   "runs the Java snippet in the current buffer"
   (interactive)
   (save-current-buffer
-    (let* ((temp-dir     (make-temp-file "java-snippet-" t))
+    (let* ((temp-dir     (make-temp-file "jsnip-" t))
            (lines        (jsnip-read-snippet-lines))
            (handler      (jsnip-make-line-handler temp-dir))
            (operations   (mapcar handler lines))
