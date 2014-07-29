@@ -91,6 +91,8 @@ the buffer"
     #'(lambda (line)
         (cond ((jsnip-file-p line)
                (setq current-file (jsnip-get-file temp-dir line))
+               (if (file-exists-p current-file)
+                   (delete-file current-file))
                `(source-file . ,current-file))
 
               ((jsnip-main-class-p line)
