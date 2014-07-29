@@ -1,0 +1,52 @@
+/// main: Main
+/// arg: Hello
+/// jar: com.google.guava:guava:17.0
+
+/// file: Person.java
+
+public enum Person {
+
+    TIM("black"),
+    ABIGAIL("purple"),
+    ASHTON("green"),
+    CLARA("pink");
+
+    private final String color;
+
+    private Person(final String color) {
+        this.color = color;
+    }
+
+    public String getFavoriteColor() {
+        return color;
+    }
+}
+
+/// file: Main.java
+
+public class Main {
+    public static void main(final String[] args) {
+        System.out.printf("%s rain!%n", Person.ABIGAIL.getFavoriteColor());
+        System.out.println(makePretty("Hello", Shouter.INSTANCE));
+    }
+
+    public static String makePretty(final String str, StringDecorator decorator) {
+        return decorator.decorate(str);
+    }
+}
+
+/// file: StringDecorator.java
+
+interface StringDecorator {
+    String decorate(final String str);
+}
+
+/// file: Shouter.java
+
+public enum Shouter implements StringDecorator {
+    INSTANCE;
+    @Override public String decorate(final String str) { return str.toUpperCase(); }
+}
+
+
+

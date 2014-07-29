@@ -1,0 +1,9 @@
+/// main: Main
+/// file: Main.java
+/// arg: Hello
+
+public class Main {
+    public static void main(final String[] args) {
+        
+        }
+    }
