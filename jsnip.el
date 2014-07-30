@@ -26,9 +26,11 @@
 (defun jsnip-export-snippet (directory)
   "exports the snippet in the current buffer to an existing directory"
   (interactive "Dexport to directory: ")
-  (let* ((lines   (jsnip-read-snippet-lines))
-         (handler (jsnip-make-line-handler directory)))
-    (mapcar handler lines)
+  (let* ((lines      (jsnip-read-snippet-lines))
+         (handler    (jsnip-make-line-handler directory))
+         (operations (mapcar handler lines))
+         (jar-files  (jsnip-filter operations 'jar-file)))
+    (jsnip-write-pom-file directory jar-files)
     (message (concat "Snippet was exported to: " directory))))
 
 (defun jsnip-run-snippet ()
@@ -238,6 +240,33 @@ run the program"
                                   "-Dtype=pom")))))
           jar-files)
   t)
+
+;; pom.xml file export
+
+(defun jsnip-write-pom-file (directory jar-files)
+  "writes a minimal pom.xml file that has the wrong values for
+groupId and artifactId but does include dependencies"
+  (let ((pom-file (concat (file-name-as-directory directory) "pom.xml")))
+    (if (file-exists-p pom-file)
+        (delete-file pom-file))
+
+    (append-to-file "<project>\n" nil pom-file)
+    (append-to-file "   <modelVersion>4.0.0</modelVersion>\n" nil pom-file)
+    (append-to-file "   <groupId>com.example</groupId>\n" nil pom-file)
+    (append-to-file "   <artifactId>jsnip-snippet</artifactId>\n" nil pom-file)
+    (append-to-file "   <version>0.0.1-SNAPSHOT</version>\n" nil pom-file)
+    (append-to-file "   <dependencies>\n" nil pom-file)
+
+    (mapcar #'(lambda (jar-file)
+                (append-to-file "      <dependency>\n" nil pom-file)
+                (append-to-file (concat "         <groupId>" (jsnip-jar-file-group-id jar-file) "</groupId>\n") nil pom-file)
+                (append-to-file (concat "         <artifactId>" (jsnip-jar-file-artifact-id jar-file) "</artifactId>\n") nil pom-file)
+                (append-to-file (concat "         <version>" (jsnip-jar-file-version jar-file) "</version>\n") nil pom-file)
+                (append-to-file "      </dependency>\n" nil pom-file))
+            jar-files)
+
+    (append-to-file "   </dependencies>\n" nil pom-file)
+    (append-to-file "</project>\n" nil pom-file)))
 
 ;; Utilities
 
