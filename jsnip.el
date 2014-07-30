@@ -216,11 +216,6 @@ output and snippet output will be displayed"
 (defun jsnip-build-class-path (temp-dir jar-files buffer)
   "builds the Java class path required to compile the snippet and
 run the program"
-  (mapcar #'(lambda (jar-file)
-              (let ((jar-file-path (jsnip-jar-file-local-path jar-file)))
-                    (when (not (file-exists-p jar-file-path))
-                      (insert (concat "warning: could not find jar file: " jar-file-path ".\n")))))
-                jar-files)
   (s-join ":" (-flatten (list temp-dir (mapcar #'jsnip-jar-file-local-path jar-files)))))
 
 ;; Download Missing Jars
@@ -232,8 +227,8 @@ run the program"
                   (message (concat "Downloading JAR to: " jar-file-path "..."))
                   (insert (concat "warning: could not find jar file: " jar-file-path ".  Downloading...\n"))
                   (let ((maven-path (concat (file-name-as-directory jsnip-maven-home) "bin/mvn")))
-                    (call-process maven-path nil buffer nil 
-                                  "org.apache.maven.plugins:maven-dependency-plugin:2.7:get"
+                    (call-process maven-path nil buffer nil
+                                  "org.apache.maven.plugins:maven-dependency-plugin:2.8:get"
                                   (concat "-DgroupId=" (jsnip-jar-file-group-id jar-file))
                                   (concat "-DartifactId=" (jsnip-jar-file-artifact-id jar-file))
                                   (concat "-Dversion=" (jsnip-jar-file-version jar-file))
