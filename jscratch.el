@@ -118,6 +118,7 @@
     (append-to-file "}\n\n" nil project-file)
 
     (append-to-file "run {\n" nil project-file)
+    (append-to-file "   enableAssertions=true\n" nil project-file)
     (append-to-file "   if (project.hasProperty('args')) {\n" nil project-file)
     (append-to-file "      args project.args.split('\\\\s')\n" nil project-file)
     (append-to-file "   }\n" nil project-file)
