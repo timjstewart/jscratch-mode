@@ -77,13 +77,6 @@ If your code depends on a jar file, just add a reference to that jar
 file (using 'Gradle' notation).  Your source files will be compiled
 and run with any referenced jar files on the class path.
 
-BUG: If a jar file you depend on has other dependencies, you will have
-to manually add all of the dependencies.  I can either start using
-maven for classpath and dependency management (which slows things
-down) or I can write my own code that does that (which still might be
-slow but will definitely be inferior to maven) or I can just accept
-that I'll have to manually include all jar file references.
-
 Argument directive
 ------------------
 
