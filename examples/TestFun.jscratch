@@ -1,0 +1,34 @@
+/// main: Main
+/// args: Hello
+
+/// source: Main.java
+
+public class Main {
+
+    public static void main(final String[] args) {
+
+        System.out.println(Helper.nop("No Operation"));
+
+        System.out.println(Helper.get(() -> "Produce this!"));
+
+        System.out.println(Helper.map("18 characters long", (String x) -> Integer.valueOf(x.length())));
+    }
+}
+
+/// source: Helper.java
+
+import java.util.function.Supplier;
+import java.util.function.Function;
+
+
+class Helper {
+
+    public static <T> T nop(final T t) { return t; }
+
+    public static <T> T get(Supplier<T> s) { return s.get(); }
+
+    public static <T,U> U map(T t, Function<T,U> f) {
+        return f.apply(t);
+    }
+
+}

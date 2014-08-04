@@ -1,0 +1,98 @@
+/// main: Main
+/// source: Main.java
+/// args: Hello
+/// jar: junit:junit:4.11
+
+import static org.junit.Assert.*;
+
+public class Main {
+
+    public static void main(final String[] args) {
+        System.out.println("Hello, World!");
+
+        final Evaluator<Integer> e = new Evaluator<>();
+
+        assertEquals(Integer.valueOf(1), e.evaluate(new Expression<Integer>() {
+                @Override public Integer getValue() { return 1; }
+                }));
+
+        assertEquals(Integer.valueOf(3), e.evaluate(
+                         new Addition(
+                             new Expression<Integer>() {
+                                 @Override public Integer getValue() { return 1; }
+                             },
+                             new Expression<Integer>() {
+                                 @Override public Integer getValue() { return 2; }
+                             })));
+
+        assertEquals(Integer.valueOf(3), e.evaluate(
+                         new Subtraction(
+                             new Expression<Integer>() {
+                                 @Override public Integer getValue() { return 5; }
+                             },
+                             new Expression<Integer>() {
+                                 @Override public Integer getValue() { return 2; }
+                             })));
+
+        assertEquals(Integer.valueOf(42), new Number(42).getValue());
+
+        System.out.println(e.evaluate(
+                               new Addition(
+                                   new Subtraction(new Number(42),
+                                                   new Number(21)),
+                                   new Number(100))
+                           ));
+    }
+}
+
+/// source: Expression.java
+
+interface Expression<Value> {
+    Value getValue();
+}
+
+/// source: Number.java
+
+import java.util.Objects;
+
+class Number implements Expression<Integer> {
+    private final Integer value;
+    public Number(final Integer value) {
+        this.value = Objects.requireNonNull(value, "value cannot be null");
+    }
+    @Override public Integer getValue() { return value; }
+}
+
+/// source: Addition.java
+
+import java.util.Objects;
+
+class Addition implements Expression<Integer> {
+    private final Expression<Integer> addend, augend;
+    public Addition(final Expression<Integer> addend, final Expression<Integer> augend) {
+        this.addend = Objects.requireNonNull(addend, "addend cannot be null");
+        this.augend = Objects.requireNonNull(augend, "augend cannot be null");
+    }
+    @Override public Integer getValue() { return addend.getValue() + augend.getValue(); }
+}
+
+/// source: Subtraction.java
+
+import java.util.Objects;
+
+class Subtraction implements Expression<Integer> {
+    private final Expression<Integer> minuend, subtrahend;
+    public Subtraction(final Expression<Integer> minuend, final Expression<Integer> subtrahend) {
+        this.minuend = Objects.requireNonNull(minuend, "minuend cannot be null");
+        this.subtrahend = Objects.requireNonNull(subtrahend, "subtrahend cannot be null");
+    }
+    @Override public Integer getValue() { return minuend.getValue() - subtrahend.getValue(); }
+}
+
+/// source: Evaluator.java
+
+class Evaluator<Value> {
+    public Value evaluate(Expression<Value> expr) {
+        return expr.getValue();
+    }
+}

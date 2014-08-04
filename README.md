@@ -1,5 +1,5 @@
-jsnip-mode
-==========
+jscratch-mode
+=============
 
 An Emacs mode that lets you quickly experiment with Java.
 
@@ -12,7 +12,7 @@ Clone the repository and add its directory to your load path:
 
 Load the library:
 
-        (require 'jsnip-mode)
+        (require 'jscratch-mode)
 
 Auto Insert Snippet
 ===================
@@ -25,14 +25,14 @@ Add the following to your init file:
 
         (setq auto-insert-directory "~/.emacs.d/templates/")
         (setq auto-insert-query nil)
-        (define-auto-insert "\.jsnip" "jsnip-template.jsnip")
+        (define-auto-insert "\.jscratch" "jscratch-template.jscratch")
 
-Then create a file named: ~/.emacs.d/templates/jsnip-template.jsnip
+Then create a file named: ~/.emacs.d/templates/jscratch-template.jscratch
 containing the following:
 
         /// main: Main
-        /// file: Main.java
-        /// arg: Hello
+        /// source: Main.java
+        /// args: Hello World
         /// jar: com.google.guava:guava:17.0
 
         public class Main {
@@ -40,21 +40,21 @@ containing the following:
             }
         }
 
-Now, whenever you create a new file with .jsnip as the extension, the
+Now, whenever you create a new file with .jscratch as the extension, the
 above template will be automatically inserted.
 
 Usage
 =====
 
-Once you've created a new Jsnip buffer (with an extension of .jsnip)
+Once you've created a new Jscratch buffer (with an extension of .jscratch)
 you can enter the following kinds of things:
 
 A file directive
 ----------------
 
-        /// file: Main.java
+        /// source: Main.java
 
-The file directive tells JSnip that all subsequent lines (up until the
+The file directive tells Jscratch that all subsequent lines (up until the
 next file directive) go into a file with the specified name.  I find
 this feature useful because when I'm doing some exploratory coding, I
 often don't know how long-lived a class will be and I want to keep the
@@ -84,11 +84,10 @@ down) or I can write my own code that does that (which still might be
 slow but will definitely be inferior to maven) or I can just accept
 that I'll have to manually include all jar file references.
 
-Argument directives
--------------------
+Argument directive
+------------------
 
-        // arg: Hello
-        // arg: World!
+        // args: Hello World!
 
 If you want to have arguments passed to your snippet, add one argument
 directive per argument.
@@ -108,12 +107,10 @@ Key Bindings
 Customization
 =============
 
-Run 'M-x customize-apropos RET jsnip' to get a list of things you can
-customize.
+Run 'M-x customize-apropos RET jscratch' to get a list of things you can
+customize:
 
-- jsnip-java-home - the directory where Java is installed
-- jsnip-maven-home - the directory where Maven is installed
-- jsnip-maven-repo - the path to your Maven repository (in case it's not in ~/.m2/repository)
+- jscratch-gradle-home - the directory where gradle is installed
 
 Maybe To Do
 ===========
@@ -124,7 +121,6 @@ Things I may end up doing:
   the packages.
 - Figure out what to do about temp directories (reuse them or clean
   them up)
-- Refactor the line handling code to not write the Java source files.
 - Figure out how to handle line numbers in error messages.  Does Java
   have something like the C preprocessor's line pragma?
 - Allow users to specify an input file where stdin data is read from

@@ -1,8 +1,9 @@
 /// main: Main
-/// arg: Hello
+/// args: Hello
 /// jar: com.google.guava:guava:17.0
+/// jar: com.strategicgains:RestExpress:0.10.3
 
-/// file: Person.java
+/// source: Person.java
 
 public enum Person {
 
@@ -22,12 +23,18 @@ public enum Person {
     }
 }
 
-/// file: Main.java
+/// source: Main.java
+
+import org.restexpress.RestExpress;
 
 public class Main {
     public static void main(final String[] args) {
         System.out.printf("%s rain!%n", Person.ABIGAIL.getFavoriteColor());
         System.out.println(makePretty("Hello", Shouter.INSTANCE));
+        final RestExpress re = new RestExpress().setPort(8000);
+        System.out.println("Listening...");
+        // re.bind();
+        // re.awaitShutdown();
     }
 
     public static String makePretty(final String str, StringDecorator decorator) {
@@ -35,13 +42,13 @@ public class Main {
     }
 }
 
-/// file: StringDecorator.java
+/// source: StringDecorator.java
 
 interface StringDecorator {
     String decorate(final String str);
 }
 
-/// file: Shouter.java
+/// source: Shouter.java
 
 public enum Shouter implements StringDecorator {
     INSTANCE;
